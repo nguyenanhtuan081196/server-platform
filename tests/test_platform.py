@@ -1,6 +1,6 @@
 import os
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
 from fastapi import APIRouter, HTTPException
 from fastapi.testclient import TestClient
@@ -66,7 +66,7 @@ class PlatformTests(unittest.TestCase):
             from app.core.config import get_settings
             get_settings.cache_clear()
             from app.database.mongo import get_database
-            fake_client = Mock()
+            fake_client = MagicMock()
             fake_database = object()
             fake_client.__getitem__.return_value = fake_database
             with patch("app.database.mongo.get_client", return_value=fake_client):
