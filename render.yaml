@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: server-platform-starter
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_NAME
+        value: Server Platform
+      - key: API_ALLOWED_HOSTS
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
