@@ -1,1 +1,1 @@
-"""
+"""Platform test package."""
