@@ -94,6 +94,10 @@ Deploy one Render web service per project. Set secrets in that service's environ
 
 The included Dockerfile and `render.yaml` are starter examples. Review service name, region, plan, environment variables, and health-check path before deploying. Do not connect this repository to the existing Dautu production service until a separate migration is tested and explicitly approved.
 
-## Existing Dautu adoption\n\nSee [the staged Dautu adoption plan](docs/dautu-adoption-plan.md) for the audited boundary between shared infrastructure and Dautu-specific authentication, data, API, and investment logic. It documents compatibility differences and explicitly separates code migration from production cutover.\n\n## Reuse and versioning
+## Existing Dautu adoption
+
+See [the staged Dautu adoption plan](docs/dautu-adoption-plan.md) for the audited boundary between shared infrastructure and Dautu-specific authentication, data, API, and investment logic. It documents compatibility differences and explicitly separates code migration from production cutover.
+
+## Reuse and versioning
 
 Projects can initially copy the platform source package. Once the API stabilizes, publish versioned releases and optionally package the shared modules for pinned dependency reuse. Avoid making production projects depend on an unpinned moving branch.
