@@ -4,7 +4,7 @@ from __future__ import annotations
 import smtplib
 from email.message import EmailMessage
 
-from app.core.config import get_settings
+from server_platform.core.config import get_settings
 
 
 def send_email(recipient: str, subject: str, text_body: str, html_body: str | None = None) -> None:

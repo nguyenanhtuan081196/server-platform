@@ -1,12 +1,12 @@
 # Server Platform
 
-A reusable, project-neutral backend foundation built with FastAPI. Use it to start independent applications without rebuilding the operational basics each time.
+A reusable, project-neutral FastAPI backend foundation distributed as the Python package `server-platform`. Use it to start independent applications without rebuilding operational infrastructure each time.
 
 ## Architecture and isolation
 
-This repository is shared **source code**, not a shared multi-tenant production API. Deploy one backend service per application. Each deployment must use its own credentials and project data.
+This repository is shared **library source**, not a shared multi-tenant production API. Deploy one backend service per application. Each deployment must use its own credentials and project data.
 
-| Integration | Shared in source code | Separate for every project |
+| Integration | Shared in this package | Separate for every project |
 | --- | --- | --- |
 | MongoDB | Connection helpers and lifecycle | Atlas database, database user, URI, backups and access policy |
 | Firebase | Firebase Admin initialization and ID-token verification | Firebase project, service account, Auth users, Firestore and Security Rules |
@@ -19,26 +19,49 @@ For Firebase, create a separate Firebase project per application. Each project o
 
 ## What belongs here
 
-- Application factory and standard health endpoints.
+- FastAPI application factory and standard health endpoints.
 - Environment-based configuration and safe logging.
 - Security response headers, host validation, and configurable CORS.
 - Optional MongoDB connection lifecycle, URI normalization, collection helper and readiness checks.
 - Optional Firebase ID-token verification.
-- SMTP email transport.
+- Generic SMTP email transport.
 - Docker and Render deployment starter files.
 - Tests and a project template.
 
-## What does not belong here
+Business routes, project-specific schemas, investment logic, customer data, Firebase credentials, SMTP passwords, database URIs, and project-specific admin identities belong in each consuming project.
 
-Business routes, project-specific schemas, stock/investment logic, customer data, Firebase project credentials, SMTP passwords, database URIs, and project-specific admin identities. Keep those in the consuming project and its own secret store.
+## Install from source
 
-## Quick start
+For local development of this repository:
 
-1. Clone this private repository and copy the root `app/` platform package, `requirements.txt`, and the deployment starter files into a new project repository. The template folder contains the project entry point and setup notes.
-2. Create a virtual environment and install `requirements.txt`.
-3. Copy `.env.example` to `.env` and configure only the integrations you use.
-4. Run `uvicorn app.main:app --reload` (or your project's own entry point).
-5. Run `python -m unittest discover -s tests -v`.
+```bash
+python -m venv .venv
+# Activate the virtual environment, then:
+python -m pip install -e ".[test]"
+python -m unittest discover -s tests -v
+```
+
+The package uses a `src/server_platform` layout and is imported as `server_platform`, avoiding collisions with a consuming project's own `app` package.
+
+After a reviewed release tag is published, a consuming project's dependency can be pinned to that immutable tag:
+
+```toml
+[project]
+dependencies = [
+  "server-platform @ git+https://github.com/nguyenanhtuan081196/server-platform.git@v0.1.0"
+]
+```
+
+If repository access is restricted, configure a read-only GitHub deploy key or token in the build environment. Never embed credentials in dependency URLs or commit them to source control. Do not depend on an unpinned `main` branch.
+
+## Quick start for a new project
+
+1. Copy `templates/fastapi-project/` into a new project repository.
+2. Add the pinned `server-platform` dependency to that project's `pyproject.toml` and install the project dependencies.
+3. Add project-owned routers under the new project's `app/api/` and pass them to `create_app(routers=[...])`.
+4. Add project-owned authorization, data models, tests and CI.
+5. Configure a unique `APP_NAME`, allowed hosts, CORS origins and service credentials.
+6. Deploy a separate Render service using the starter Dockerfile/Blueprint as a reference.
 
 The platform deliberately does not require MongoDB or Firebase just to start. Enable integrations with environment variables.
 
@@ -62,19 +85,19 @@ Important variables:
 ## MongoDB usage
 
 ```python
-from app.database.mongo import get_collection, get_database
+from server_platform.database.mongo import get_collection, get_database
 
 db = get_database()
 users = get_collection("users")
 ```
 
-The client is lazy and cached for the process. The URI helper validates the MongoDB scheme, removes empty query options, and adds `retryWrites=true` only when it is not already explicitly configured. Separate server-selection and socket-connect timeouts are configurable. The application lifespan closes the cached client at shutdown. `/readyz` pings MongoDB only when `MONGODB_URI` is configured. A missing optional integration does not prevent local startup.
+The client is lazy and cached for the process. The URI helper validates the MongoDB scheme and host, removes empty query options, and adds `retryWrites=true` only when it is not already explicitly configured. Separate server-selection and socket-connect timeouts are configurable. The application lifespan closes the cached client at shutdown. `/readyz` pings MongoDB only when `MONGODB_URI` is configured. A missing optional integration does not prevent local startup.
 
 ## Firebase usage
 
 ```python
 from fastapi import APIRouter, Depends
-from app.auth.firebase import require_authenticated_user
+from server_platform.auth.firebase import require_authenticated_user
 
 router = APIRouter()
 
@@ -98,8 +121,4 @@ The included Dockerfile and `render.yaml` are starter examples. Review service n
 
 ## Existing Dautu adoption
 
-See [the staged Dautu adoption plan](docs/dautu-adoption-plan.md) for the audited boundary between shared infrastructure and Dautu-specific authentication, data, API, and investment logic. It documents compatibility differences and explicitly separates code migration from production cutover.
-
-## Reuse and versioning
-
-Projects can initially copy the platform source package. Once the API stabilizes, publish versioned releases and optionally package the shared modules for pinned dependency reuse. Avoid making production projects depend on an unpinned moving branch.
+See [the staged Dautu adoption plan](docs/dautu-adoption-plan.md) for the audited boundary between shared infrastructure and Dautu-specific authentication, data, API, and investment logic. A package release does not itself authorize changing Dautu's production runtime.

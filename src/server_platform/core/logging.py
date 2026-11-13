@@ -1,7 +1,7 @@
 """Consistent application logging without leaking secret values."""
 import logging
 
-from app.core.config import get_settings
+from server_platform.core.config import get_settings
 
 
 def configure_logging() -> None:

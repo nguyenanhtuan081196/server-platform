@@ -5,10 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
-COPY requirements.txt .
-RUN python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+COPY pyproject.toml README.md ./
+COPY src ./src
+RUN python -m pip install --upgrade pip && python -m pip install .
 
-COPY app ./app
 EXPOSE 10000
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]
+CMD ["sh", "-c", "uvicorn server_platform.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

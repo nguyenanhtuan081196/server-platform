@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from app.core.config import get_settings
+from server_platform.core.config import get_settings
 
 
 def install_middleware(app: FastAPI) -> None:

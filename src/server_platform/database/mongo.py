@@ -12,7 +12,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from pymongo import MongoClient
 from pymongo.database import Database
 
-from app.core.config import get_settings
+from server_platform.core.config import get_settings
 
 
 def normalize_mongodb_uri(uri: str) -> str:
