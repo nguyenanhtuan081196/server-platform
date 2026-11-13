@@ -3,8 +3,8 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from server_platform.core.config import get_settings
-from server_platform.database.mongo import ping_database
+from app.core.config import get_settings
+from app.database.mongo import ping_database
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

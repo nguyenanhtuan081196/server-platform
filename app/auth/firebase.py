@@ -12,7 +12,7 @@ from typing import Any
 
 from fastapi import Header, HTTPException
 
-from server_platform.core.config import get_settings
+from app.core.config import get_settings
 
 
 @lru_cache(maxsize=1)

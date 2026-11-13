@@ -4,11 +4,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 
-from server_platform.core.config import get_settings
-from server_platform.core.logging import configure_logging
-from server_platform.database.mongo import close_client
-from server_platform.health import router as health_router
-from server_platform.middleware import install_middleware
+from app.core.config import get_settings
+from app.core.logging import configure_logging
+from app.database.mongo import close_client
+from app.health import router as health_router
+from app.middleware import install_middleware
 
 
 def create_app(
