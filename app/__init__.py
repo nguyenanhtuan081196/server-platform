@@ -1,1 +1,0 @@
-"""Reusable backend platform package."""
