@@ -1,0 +1,1 @@
+"""Optional SMTP email transport."""
