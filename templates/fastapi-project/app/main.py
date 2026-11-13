@@ -1,7 +1,7 @@
 """Example consuming-project entry point."""
 from fastapi import APIRouter
 
-from app.main import create_app
+from server_platform.main import create_app
 
 api = APIRouter(prefix="/api")
 
