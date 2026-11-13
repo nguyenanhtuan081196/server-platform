@@ -22,7 +22,7 @@ For Firebase, create a separate Firebase project per application. Each project o
 - Application factory and standard health endpoints.
 - Environment-based configuration and safe logging.
 - Security response headers, host validation, and configurable CORS.
-- Optional MongoDB connection lifecycle, collection helper and readiness checks.
+- Optional MongoDB connection lifecycle, URI normalization, collection helper and readiness checks.
 - Optional Firebase ID-token verification.
 - SMTP email transport.
 - Docker and Render deployment starter files.
@@ -53,6 +53,8 @@ Important variables:
 - `API_ALLOWED_HOSTS`: comma-separated hostnames; include the Render hostname and custom domain.
 - `CORS_ALLOWED_ORIGINS`: comma-separated exact origins.
 - `MONGODB_URI` and `MONGODB_DATABASE`: optional MongoDB integration. Use a database-specific, least-privilege Atlas user per project.
+- `MONGODB_SERVER_SELECTION_TIMEOUT_MS`: maximum time to wait for server selection.
+- `MONGODB_CONNECT_TIMEOUT_MS`: maximum time to establish an individual socket connection.
 - `FIREBASE_SERVICE_ACCOUNT_JSON`: optional Firebase Admin service-account JSON for this project's Firebase project.
 - `AUTH_REQUIRE_VERIFIED_EMAIL`: whether Firebase users must have verified email.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`: optional SMTP transport.
@@ -66,7 +68,7 @@ db = get_database()
 users = get_collection("users")
 ```
 
-The client is lazy and cached for the process, and is closed by the FastAPI application lifespan on shutdown. `/readyz` pings MongoDB only when `MONGODB_URI` is configured. A missing optional integration does not prevent local startup.
+The client is lazy and cached for the process. The URI helper validates the MongoDB scheme, removes empty query options, and adds `retryWrites=true` only when it is not already explicitly configured. Separate server-selection and socket-connect timeouts are configurable. The application lifespan closes the cached client at shutdown. `/readyz` pings MongoDB only when `MONGODB_URI` is configured. A missing optional integration does not prevent local startup.
 
 ## Firebase usage
 
