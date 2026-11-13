@@ -23,7 +23,63 @@ class PlatformTests(unittest.TestCase):
             settings = get_settings()
             self.assertEqual(settings.app_name, "Backend API")
             self.assertEqual(settings.mongodb_uri, "")
+            self.assertEqual(settings.mongodb_connect_timeout_ms, 5000)
             self.assertTrue(settings.auth_require_verified_email)
+
+    def test_mongodb_connect_timeouts_are_independently_configurable(self):
+        with patch.dict(os.environ, {
+            "MONGODB_SERVER_SELECTION_TIMEOUT_MS": "9000",
+            "MONGODB_CONNECT_TIMEOUT_MS": "2500",
+        }, clear=True):
+            from app.core.config import get_settings
+            settings = get_settings()
+            self.assertEqual(settings.mongodb_server_selection_timeout_ms, 9000)
+            self.assertEqual(settings.mongodb_connect_timeout_ms, 2500)
+
+    def test_mongodb_uri_normalization_removes_empty_options_and_adds_retry_writes(self):
+        from app.database.mongo import normalize_mongodb_uri
+        normalized = normalize_mongodb_uri("mongodb+srv://user:pass@example.test/db?tls=true&&")
+        self.assertEqual(normalized, "mongodb+srv://user:pass@example.test/db?tls=true&retryWrites=true")
+
+    def test_mongodb_uri_normalization_preserves_explicit_retry_writes(self):
+        from app.database.mongo import normalize_mongodb_uri
+        normalized = normalize_mongodb_uri("mongodb://localhost:27017/db?retryWrites=false&&appName=test")
+        self.assertEqual(normalized, "mongodb://localhost:27017/db?retryWrites=false&appName=test")
+
+    def test_mongodb_uri_normalization_rejects_invalid_scheme_and_missing_host(self):
+        from app.database.mongo import normalize_mongodb_uri
+        with self.assertRaisesRegex(ValueError, "mongodb://"):
+            normalize_mongodb_uri("https://example.test")
+        with self.assertRaisesRegex(ValueError, "host"):
+            normalize_mongodb_uri("mongodb:///database")
+
+    def test_mongodb_client_uses_separate_timeout_settings(self):
+        with patch.dict(os.environ, {
+            "MONGODB_URI": "mongodb://localhost:27017",
+            "MONGODB_SERVER_SELECTION_TIMEOUT_MS": "9000",
+            "MONGODB_CONNECT_TIMEOUT_MS": "2500",
+        }, clear=True):
+            from app.core.config import get_settings
+            get_settings.cache_clear()
+            from app.database.mongo import get_client
+            with patch("app.database.mongo.MongoClient") as client_factory:
+                get_client()
+                kwargs = client_factory.call_args.kwargs
+                self.assertEqual(kwargs["serverSelectionTimeoutMS"], 9000)
+                self.assertEqual(kwargs["connectTimeoutMS"], 2500)
+
+    def test_close_client_clears_cache_even_if_close_fails(self):
+        with patch.dict(os.environ, {"MONGODB_URI": "mongodb://localhost:27017"}, clear=True):
+            from app.core.config import get_settings
+            get_settings.cache_clear()
+            from app.database.mongo import close_client, get_client
+            fake_client = MagicMock()
+            fake_client.close.side_effect = RuntimeError("close failed")
+            with patch("app.database.mongo.MongoClient", return_value=fake_client):
+                get_client()
+                with self.assertRaisesRegex(RuntimeError, "close failed"):
+                    close_client()
+            self.assertEqual(get_client.cache_info().currsize, 0)
 
     def test_liveness_does_not_require_database_or_credentials(self):
         with patch.dict(os.environ, {"API_ALLOWED_HOSTS": "testserver"}, clear=True):

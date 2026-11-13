@@ -20,6 +20,7 @@ class Settings:
     mongodb_uri: str
     mongodb_database: str
     mongodb_server_selection_timeout_ms: int
+    mongodb_connect_timeout_ms: int
     firebase_service_account_json: str
     auth_require_verified_email: bool
     smtp_host: str
@@ -45,6 +46,7 @@ def get_settings() -> Settings:
         mongodb_uri=os.getenv("MONGODB_URI", "").strip(),
         mongodb_database=os.getenv("MONGODB_DATABASE", "app").strip() or "app",
         mongodb_server_selection_timeout_ms=int(os.getenv("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")),
+        mongodb_connect_timeout_ms=int(os.getenv("MONGODB_CONNECT_TIMEOUT_MS", "5000")),
         firebase_service_account_json=os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip(),
         auth_require_verified_email=os.getenv("AUTH_REQUIRE_VERIFIED_EMAIL", "true").lower() in {"1", "true", "yes", "on"},
         smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com").strip(),
